@@ -1,0 +1,5 @@
+ALTER TABLE users
+    ADD COLUMN name VARCHAR(50) NOT NULL DEFAULT 'Пользователь';
+
+ALTER TABLE users
+    ALTER COLUMN name DROP DEFAULT;

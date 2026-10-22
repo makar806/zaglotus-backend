@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: ${ZAGLOTUS_POSTGRES_DB}
+      POSTGRES_USER: ${ZAGLOTUS_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${ZAGLOTUS_POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data_v3:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ZAGLOTUS_POSTGRES_USER} -d ${ZAGLOTUS_POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    environment:
+      PORT: 8080
+      DB_URL: jdbc:postgresql://postgres:5432/${ZAGLOTUS_POSTGRES_DB}
+      DB_USER: ${ZAGLOTUS_POSTGRES_USER}
+      DB_PASSWORD: ${ZAGLOTUS_POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: zaglotus
+      JWT_AUDIENCE: zaglotus-users
+      JWT_REALM: zaglotus-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data_v3:
