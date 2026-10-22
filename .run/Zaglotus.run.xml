@@ -1,0 +1,27 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Zaglotus" type="KtorApplicationConfigurationType" factoryName="Ktor">
+    <option name="MAIN_CLASS_NAME" value="ru.zaglotus.presentation.ApplicationKt" />
+    <module name="zaglotus-backend.main" />
+    <option name="alternativeJrePath" value="21" />
+    <option name="alternativeJrePathEnabled" value="true" />
+    <envs>
+      <env name="DB_PASSWORD" value="zaglotus" />
+      <env name="DB_URL" value="jdbc:postgresql://localhost:5433/zaglotus" />
+      <env name="DB_USER" value="zaglotus" />
+      <env name="JWT_AUDIENCE" value="zaglotus-users" />
+      <env name="JWT_ISSUER" value="zaglotus" />
+      <env name="JWT_REALM" value="zaglotus-api" />
+      <env name="JWT_SECRET" value="local-development-secret-change-me-please" />
+    </envs>
+    <option name="includeProvidedScope" value="false" />
+    <option name="mainClass" value="ru.zaglotus.presentation.ApplicationKt" />
+    <option name="passParentEnvs" value="true" />
+    <option name="programParameters" value="" />
+    <option name="shortenCommandLine" value="MANIFEST" />
+    <option name="vmParameters" value="" />
+    <option name="workingDirectory" value="$PROJECT_DIR$" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

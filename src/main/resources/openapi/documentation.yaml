@@ -1,0 +1,431 @@
+openapi: 3.0.3
+info:
+  title: Заглотус API
+  description: API тамагочи, который получает еду и опыт за закрытые дедлайны
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Локальный сервер
+tags:
+  - name: System
+    description: Проверка состояния приложения
+  - name: Auth
+    description: Регистрация и авторизация
+  - name: Pet
+    description: Состояние питомца
+  - name: Deadlines
+    description: Управление дедлайнами
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Проверить состояние сервера
+      operationId: health
+      responses:
+        '200':
+          description: Сервер работает
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Зарегистрировать пользователя
+      description: Создаёт пользователя и его питомца в одной транзакции
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              name: Иван
+              email: student@example.com
+              password: password123
+              petName: Жора
+      responses:
+        '201':
+          description: Пользователь зарегистрирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Войти в приложение
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: student@example.com
+              password: password123
+      responses:
+        '200':
+          description: Авторизация успешна
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/pet:
+    get:
+      tags: [Pet]
+      summary: Получить состояние питомца
+      operationId: getPet
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Состояние питомца
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PetResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/deadlines:
+    get:
+      tags: [Deadlines]
+      summary: Получить список дедлайнов
+      operationId: listDeadlines
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: Фильтр по статусу
+          schema:
+            $ref: '#/components/schemas/DeadlineStatus'
+      responses:
+        '200':
+          description: Список дедлайнов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeadlineResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Deadlines]
+      summary: Создать дедлайн
+      operationId: createDeadline
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeadlineRequest'
+            example:
+              title: Сдать лабораторную
+              description: Подготовить серверную часть
+              dueAt: '2027-10-22T18:00:00Z'
+              difficulty: HARD
+      responses:
+        '201':
+          description: Дедлайн создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeadlineResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/deadlines/{id}:
+    parameters:
+      - $ref: '#/components/parameters/DeadlineId'
+    get:
+      tags: [Deadlines]
+      summary: Получить дедлайн
+      operationId: getDeadline
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Дедлайн найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeadlineResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Deadlines]
+      summary: Изменить открытый дедлайн
+      operationId: updateDeadline
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeadlineRequest'
+      responses:
+        '200':
+          description: Дедлайн изменён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeadlineResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [Deadlines]
+      summary: Удалить открытый дедлайн
+      operationId: deleteDeadline
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Дедлайн удалён
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/deadlines/{id}/complete:
+    parameters:
+      - $ref: '#/components/parameters/DeadlineId'
+    post:
+      tags: [Deadlines]
+      summary: Закрыть дедлайн и покормить питомца
+      description: Закрывает дедлайн и начисляет питомцу одну еду и опыт согласно сложности
+      operationId: completeDeadline
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Дедлайн закрыт, награда начислена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompletionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT из ответа регистрации или входа
+  parameters:
+    DeadlineId:
+      name: id
+      in: path
+      required: true
+      description: UUID дедлайна
+      schema:
+        type: string
+        format: uuid
+  responses:
+    BadRequest:
+      description: Некорректный запрос
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Требуется авторизация
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Объект не найден
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Операция конфликтует с текущим состоянием
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [name, email, password, petName]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 72
+        petName:
+          type: string
+          minLength: 2
+          maxLength: 30
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    AuthResponse:
+      type: object
+      required: [userId, name, token]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+        token:
+          type: string
+          description: JWT со сроком действия 24 часа
+    DeadlineRequest:
+      type: object
+      required: [title, dueAt, difficulty]
+      properties:
+        title:
+          type: string
+          minLength: 2
+          maxLength: 120
+        description:
+          type: string
+          nullable: true
+          maxLength: 1000
+        dueAt:
+          type: string
+          format: date-time
+          description: Будущая дата в формате ISO-8601 UTC
+        difficulty:
+          $ref: '#/components/schemas/Difficulty'
+    DeadlineResponse:
+      type: object
+      required: [id, title, dueAt, difficulty, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        dueAt:
+          type: string
+          format: date-time
+        difficulty:
+          $ref: '#/components/schemas/Difficulty'
+        status:
+          $ref: '#/components/schemas/DeadlineStatus'
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+    PetResponse:
+      type: object
+      required: [name, experience, meals, level]
+      properties:
+        name:
+          type: string
+        experience:
+          type: integer
+          minimum: 0
+        meals:
+          type: integer
+          minimum: 0
+        level:
+          type: integer
+          minimum: 1
+    PetRewardResponse:
+      allOf:
+        - $ref: '#/components/schemas/PetResponse'
+        - type: object
+          required: [gainedExperience]
+          properties:
+            gainedExperience:
+              type: integer
+              minimum: 1
+    CompletionResponse:
+      type: object
+      required: [deadline, pet]
+      properties:
+        deadline:
+          $ref: '#/components/schemas/DeadlineResponse'
+        pet:
+          $ref: '#/components/schemas/PetRewardResponse'
+    Difficulty:
+      type: string
+      enum: [EASY, MEDIUM, HARD]
+    DeadlineStatus:
+      type: string
+      enum: [OPEN, COMPLETED]
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          example: validation_error
+        message:
+          type: string
+          example: Некорректный запрос
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: ok
