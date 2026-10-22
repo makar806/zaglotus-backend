@@ -32,6 +32,8 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.13.4")
+    testImplementation("org.testcontainers:postgresql:1.21.4")
 }
 
 application {

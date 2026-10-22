@@ -1,5 +1,6 @@
 package ru.zaglotus.application.service
 
+import org.slf4j.LoggerFactory
 import ru.zaglotus.application.transaction.TransactionManager
 import ru.zaglotus.domain.exception.NotFoundException
 import ru.zaglotus.domain.model.Deadline
@@ -11,6 +12,8 @@ import ru.zaglotus.domain.repository.PetRepository
 import java.time.Clock
 import java.time.Instant
 import java.util.UUID
+
+private val deadlineLogger = LoggerFactory.getLogger(DeadlineService::class.java)
 
 data class CompletionResult(
     val deadline: Deadline,
@@ -26,7 +29,9 @@ class DeadlineService(
 ) {
     fun create(userId: UUID, title: String, description: String?, dueAt: Instant, difficulty: Difficulty): Deadline {
         val deadline = Deadline.create(UUID.randomUUID(), userId, title, description, dueAt, difficulty, clock.instant())
-        return deadlines.create(deadline)
+        val created = deadlines.create(deadline)
+        deadlineLogger.info("Deadline created: deadlineId={}, userId={}, difficulty={}", created.id, userId, difficulty)
+        return created
     }
 
     fun list(userId: UUID, status: DeadlineStatus?): List<Deadline> =
@@ -46,6 +51,7 @@ class DeadlineService(
         val deadline = get(userId, deadlineId)
         val updated = deadline.update(title, description, dueAt, difficulty, clock.instant())
         deadlines.update(updated)
+        deadlineLogger.info("Deadline updated: deadlineId={}, userId={}", deadlineId, userId)
         return updated
     }
 
@@ -53,6 +59,7 @@ class DeadlineService(
         if (!deadlines.deleteOpen(userId, deadlineId)) {
             throw NotFoundException("Открытый дедлайн не получилось удалить")
         }
+        deadlineLogger.info("Deadline deleted: deadlineId={}, userId={}", deadlineId, userId)
     }
 
     fun complete(userId: UUID, deadlineId: UUID): CompletionResult = transactions.execute {
@@ -64,6 +71,12 @@ class DeadlineService(
         val fedPet = pet.feed(deadline.difficulty.experienceReward)
         deadlines.update(completedDeadline)
         pets.update(fedPet)
+        deadlineLogger.info(
+            "Deadline completed: deadlineId={}, userId={}, gainedExperience={}",
+            deadlineId,
+            userId,
+            deadline.difficulty.experienceReward
+        )
         CompletionResult(completedDeadline, fedPet, deadline.difficulty.experienceReward)
     }
 }

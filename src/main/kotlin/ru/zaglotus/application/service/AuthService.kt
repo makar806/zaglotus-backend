@@ -1,5 +1,6 @@
 package ru.zaglotus.application.service
 
+import org.slf4j.LoggerFactory
 import ru.zaglotus.application.security.PasswordHasher
 import ru.zaglotus.application.security.TokenService
 import ru.zaglotus.application.transaction.TransactionManager
@@ -11,6 +12,8 @@ import ru.zaglotus.domain.repository.PetRepository
 import ru.zaglotus.domain.repository.UserRepository
 import java.time.Clock
 import java.util.UUID
+
+private val authLogger = LoggerFactory.getLogger(AuthService::class.java)
 
 data class AuthResult(val userId: UUID, val name: String, val token: String)
 
@@ -34,6 +37,7 @@ class AuthService(
             users.create(user)
             pets.create(pet)
         }
+        authLogger.info("User registered: userId={}", id)
         return AuthResult(id, user.name, tokens.create(id))
     }
 
@@ -41,6 +45,7 @@ class AuthService(
         val normalizedEmail = User.normalizeEmail(email)
         val user = users.findByEmail(normalizedEmail) ?: throw UnauthorizedException()
         if (!passwordHasher.verify(password, user.passwordHash)) throw UnauthorizedException()
+        authLogger.info("User logged in: userId={}", user.id)
         return AuthResult(user.id, user.name, tokens.create(user.id))
     }
 }
