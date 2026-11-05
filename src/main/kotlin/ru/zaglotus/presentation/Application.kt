@@ -42,10 +42,10 @@ import ru.zaglotus.presentation.error.configureErrorHandling
 fun main(args: Array<String>) = EngineMain.main(args)
 
 fun Application.module() {
-    module(AppConfig.fromEnvironment())
+    configureZaglotus(AppConfig.fromEnvironment())
 }
 
-fun Application.module(config: AppConfig) {
+fun Application.configureZaglotus(config: AppConfig) {
     val dataSource = DatabaseFactory.create(config.database)
     val connections = JdbcConnectionContext(dataSource)
     val transactions = JdbcTransactionManager(dataSource, connections)

@@ -27,7 +27,7 @@ import ru.zaglotus.application.transaction.JdbcConnectionContext
 import ru.zaglotus.application.transaction.JdbcTransactionManager
 import ru.zaglotus.domain.model.Pet
 import ru.zaglotus.domain.model.User
-import ru.zaglotus.presentation.module
+import ru.zaglotus.presentation.configureZaglotus
 import java.sql.DriverManager
 import java.time.Instant
 import java.util.UUID
@@ -125,7 +125,7 @@ class ZaglotusIntegrationTest {
 
     @Test
     fun `http scenario registers user completes deadline and feeds pet`() = testApplication {
-        application { module(appConfig) }
+        application { configureZaglotus(appConfig) }
 
         val registerResponse = client.post("/api/v1/auth/register") {
             contentType(ContentType.Application.Json)
